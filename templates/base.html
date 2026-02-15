@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <title>PyWay</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- CodeMirror -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
@@ -13,6 +12,7 @@
     <nav>
         <a href="{{ url_for('index') }}">Главная</a>
         {% if session.user_id %}
+            <a href="{{ url_for('profile') }}">Профиль</a>
             <a href="{{ url_for('logout') }}">Выйти</a>
         {% else %}
             <a href="{{ url_for('login') }}">Войти</a>

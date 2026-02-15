@@ -2,12 +2,12 @@ import sqlite3
 import io
 import sys
 import contextlib
+from datetime import datetime
+from data import ACHIEVEMENTS
 from flask import Flask, g, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 
-#TODO: add <a> for all lesson div on index.html
 #TODO: change button at the end of lesson on lesson.html
-#TODO: add user profile
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -33,6 +33,27 @@ def init_db():
         with open('schema.sql', 'r', encoding='utf-8') as f:
             db.executescript(f.read())
         db.commit()
+
+def check_and_award_achievements(user_id):
+    db = get_db()
+    total = db.execute('SELECT COUNT(*) FROM lessons').fetchone()[0]
+    completed = db.execute('SELECT COUNT(*) FROM progress WHERE user_id = ? AND completed = 1', (user_id,)).fetchone()[0]
+
+    earned = set(row['achievement_key'] for row in db.execute(
+        'SELECT achievement_key FROM user_achievements WHERE user_id = ?', (user_id,)).fetchall())
+
+    new_achievements = []
+    for key, ach in ACHIEVEMENTS.items():
+        if key not in earned and ach['condition'](completed, total):
+            db.execute('''
+                INSERT INTO user_achievements (user_id, achievement_key, earned_at)
+                VALUES (?, ?, ?)
+            ''', (user_id, key, datetime.now()))
+            new_achievements.append(ach)
+
+    if new_achievements:
+        db.commit()
+    return new_achievements
 
 def run_code_with_input(code, input_data):
     old_stdin = sys.stdin
@@ -93,6 +114,31 @@ def login():
         return 'Неверные данные'
     return render_template('login.html')
 
+@app.route('/profile')
+def profile():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    db = get_db()
+    user = db.execute('SELECT username FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    total = db.execute('SELECT COUNT(*) FROM lessons').fetchone()[0]
+    completed = db.execute('SELECT COUNT(*) FROM progress WHERE user_id = ? AND completed = 1', (session['user_id'],)).fetchone()[0]
+
+    earned = db.execute('''
+        SELECT achievement_key, earned_at FROM user_achievements
+        WHERE user_id = ?
+        ORDER BY earned_at DESC
+    ''', (session['user_id'],)).fetchall()
+
+    achievements = []
+    for e in earned:
+        key = e['achievement_key']
+        if key in ACHIEVEMENTS:
+            ach = ACHIEVEMENTS[key].copy()
+            ach['earned_at'] = e['earned_at']
+            achievements.append(ach)
+
+    return render_template('profile.html', user=user, total=total, completed=completed, achievements=achievements)
+
 @app.route('/logout')
 def logout():
     session.clear()
@@ -137,10 +183,10 @@ def check(lesson_id):
             all_passed = False
 
     if all_passed:
-        db.execute('INSERT OR IGNORE INTO progress (user_id, lesson_id, completed) VALUES (?, ?, 1)',
-                   (session['user_id'], lesson_id))
+        db.execute('INSERT OR IGNORE INTO progress (user_id, lesson_id, completed) VALUES (?, ?, 1)',(session['user_id'], lesson_id))
         db.commit()
-        return render_template('result.html', passed=True, results=results, lesson_id=lesson_id)
+        new_achievements = check_and_award_achievements(session['user_id'])
+        return render_template('result.html', passed=True, results=results, lesson_id=lesson_id, new_achievements=new_achievements)
     else:
         return render_template('result.html', passed=False, results=results, lesson_id=lesson_id)
 

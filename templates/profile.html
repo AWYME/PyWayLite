@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Профиль пользователя {{ user.username }}</h1>
+<p>Пройдено уроков: {{ completed }} из {{ total }}</p>
+{% if total > 0 %}
+    <p>Прогресс: {{ (completed / total * 100)|round(1) }}%</p>
+{% endif %}
+
+{% if completed == total %}
+    <p style="color: green; font-weight: bold;">Ты настоящий профи! Все уроки пройдены. Молодец!</p>
+{% elif completed > total/2 %}
+    <p style="color: blue;">Отличный результат! Так держать, ты справляешься!</p>
+{% elif completed > 0 %}
+    <p style="color: orange;">Хорошее начало! Продолжай в том же духе, ты молодец!</p>
+{% else %}
+    <p>Пока не пройдено ни одного урока. Самое время начать! У тебя всё получится.</p>
+{% endif %}
+
+<h2>Достижения</h2>
+{% if achievements %}
+    <div class="achievements">
+        {% for ach in achievements %}
+            <div class="achievement-card">
+                <i class="{{ ach.icon }}"></i>
+                <div>
+                    <strong>{{ ach.name }}</strong><br>
+                    {{ ach.description }}<br>
+                    <small>Получено: {{ ach.earned_at }}</small>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>Пока нет достижений. Проходи уроки, чтобы получить их!</p>
+{% endif %}
+
+<a href="{{ url_for('index') }}">← Вернуться к списку уроков</a>
+{% endblock %}

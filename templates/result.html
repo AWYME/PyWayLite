@@ -25,5 +25,16 @@
     {% endfor %}
 </table>
 
+{% if new_achievements %}
+    <div style="background: #d4edda; padding: 15px; margin: 20px 0; border-radius: 5px;">
+        <h3>🎉 Новые достижения!</h3>
+        <ul>
+        {% for ach in new_achievements %}
+            <li><i class="{{ ach.icon }}"></i> {{ ach.name }} — {{ ach.description }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
 <a href="{{ url_for('lesson', lesson_id=lesson_id) }}">Вернуться к уроку</a>
 {% endblock %}
