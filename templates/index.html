@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Уроки</h1>
+<ul>
+{% for lesson in lessons %}
+    <li>
+        <a href="{{ url_for('lesson', lesson_id=lesson.id) }}">{{ lesson.title }}</a>
+        {% if lesson.id in completed_ids %} ✅{% endif %}
+    </li>
+{% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ lesson.title }}</h1>
+<div class="theory">{{ lesson.content|safe }}</div>
+<h2>Задание</h2>
+<p>{{ lesson.exercise }}</p>
+
+{% if completed %}
+    <p class="success">✅ Урок уже выполнен</p>
+{% else %}
+    <form method="post" action="{{ url_for('check', lesson_id=lesson.id) }}">
+        <textarea id="code" name="code" rows="10" cols="50">print("Hello, world!")</textarea>
+        <br>
+        <button type="submit">Проверить</button>
+    </form>
+
+    <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+            lineNumbers: true,
+            mode: "python",
+            indentUnit: 4,
+            theme: "default"
+        });
+    </script>
+{% endif %}
+{% endblock %}

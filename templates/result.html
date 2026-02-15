@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Результаты проверки</h2>
+
+{% if passed %}
+    <p style="color:green;">✅ Все тесты пройдены! Урок засчитан.</p>
+{% else %}
+    <p style="color:red;">❌ Некоторые тесты не пройдены.</p>
+{% endif %}
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Входные данные</th>
+        <th>Ожидаемый вывод</th>
+        <th>Ваш вывод</th>
+        <th>Результат</th>
+    </tr>
+    {% for r in results %}
+    <tr>
+        <td><pre>{{ r.input }}</pre></td>
+        <td><pre>{{ r.expected }}</pre></td>
+        <td><pre>{{ r.output }}</pre></td>
+        <td>{{ '✅' if r.passed else '❌' }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<a href="{{ url_for('lesson', lesson_id=lesson_id) }}">Вернуться к уроку</a>
+{% endblock %}
